@@ -1,0 +1,21 @@
+{
+    "name": "laiux/auth",
+    "description": "A package created for custom authentication in Laiux's Projects",
+    "type": "library",
+    "license": "Laiux-Property-License",
+    "autoload": {
+        "psr-4": {
+            "Laiux\\Auth\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Jorge Luis Calle Morales",
+            "email": "jorge.calle@laiux.com"
+        }
+    ],
+    "require": {
+        "firebase/php-jwt": "^6.10",
+        "laravel/framework": "^10.40"
+    }
+}
