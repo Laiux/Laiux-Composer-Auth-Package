@@ -13,14 +13,16 @@ trait Authenticable{
          *
          * @return string A signed JWT
     */
-    public function generateJWTToken(string $aud = null): string {
+    public function generateJWTToken(string $aud = null): array {
 
-        $properties = get_object_vars($this);
+        $hidden = $this->hidden;
+
+        $properties = $this->attributes;
 
         $data_object = [];
-        
+
         foreach ($properties as $name => $value) {
-            $data_object[$name] = $value;
+            if(!in_array($name, $hidden)) $data_object[$name] = $value;
         }
 
         $secret = config('auth.secret');
@@ -53,6 +55,9 @@ trait Authenticable{
 
         $token = JWT::encode($data_object, $secret, $alg);
 
-        return $token;
+        return [
+            "token" => $token,
+            "exp" => $exp
+        ];
     }
 }
