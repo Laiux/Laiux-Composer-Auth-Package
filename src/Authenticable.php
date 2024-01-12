@@ -14,7 +14,15 @@ trait Authenticable{
          * @return string A signed JWT
     */
     public function generateJWTToken(string $aud = null): string {
-        $data_object = (array) $this;
+
+        $properties = get_object_vars($this);
+
+        $data_object = [];
+        
+        foreach ($properties as $name => $value) {
+            $data_object[$name] = $value;
+        }
+
         $secret = config('auth.secret');
         $iss = config('app.url');
         $exp = config('auth.expiration_time');
