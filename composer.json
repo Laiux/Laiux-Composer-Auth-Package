@@ -2,8 +2,9 @@
     "name": "laiux/auth",
     "description": "A package created for custom authentication in Laiux's Projects",
     "type": "library",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "license": "proprietary",
+    "minimum-stability": "stable",
     "autoload": {
         "psr-4": {
             "Laiux\\Auth\\": "src/"
