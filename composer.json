@@ -3,7 +3,7 @@
     "description": "A package created for custom authentication in Laiux's Projects",
     "type": "library",
     "version": "0.0.1",
-    "license": "Laiux-Property-License",
+    "license": "proprietary",
     "autoload": {
         "psr-4": {
             "Laiux\\Auth\\": "src/"
