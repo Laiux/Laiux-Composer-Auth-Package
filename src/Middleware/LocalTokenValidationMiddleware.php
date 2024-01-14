@@ -1,6 +1,6 @@
 <?php
 
-namespace Laiux\Auth\Middleware\LocalTokenValidationMiddleware;
+namespace Laiux\Auth\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
@@ -10,7 +10,7 @@ use Laiux\Auth\Models\Session;
 
 class LocalTokenValidationMiddleware
 {
-    public function handle(Request $request, Closure $next, array $roles)
+    public function handle(Request $request, Closure $next)
     {
         //Load configs
 
@@ -22,7 +22,7 @@ class LocalTokenValidationMiddleware
         $token = $request->bearerToken();
 
         if($token == null){
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response('', 401);
         }
 
         //Validate the access token
@@ -31,12 +31,12 @@ class LocalTokenValidationMiddleware
         try {
             $decoded = JWT::decode($token, new Key($secret, $alg));
         } catch (\Throwable $th) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response('', 401);
         }
         //2nd filter validation exists in the sessions
         $session = Session::where('token', $token)->where('user_id', $decoded->id)->first();
         if($session == null){
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response('', 401);
         }
 
         return $next($request);
