@@ -17,7 +17,7 @@ trait Authenticable{
          *
          * @return string A signed JWT
     */
-    public function generateJWTToken(Request $request, string $aud = null): array {
+    public function generateJWTToken(Request $request, string $aud = null): object {
 
         $hidden = $this->hidden;
 
@@ -88,15 +88,16 @@ trait Authenticable{
         $newSession = Session::create([
             'user_id' => $this->id,
             'token' => $token,
-            'expire_time' => $exp,
             'issued_date' => $issued_date,
+            'expire_time' => $exp,
+            'expire_date' => $issued_date+$exp,
             'device' => $agent->device() == false ? null : $agent->device(),
             'platform' => $agent->platform() == false ? null : $agent->platform(),
             'browser' => $agent->browser() == false ? null : $agent->browser(),
             'is_desktop' => $agent->isDesktop(),
-            'is_phone' => $agent->isDesktop(),
+            'is_phone' => $agent->isPhone(),
             'is_robot' => $agent->isRobot(),
-            'ipInfo' => json_encode($ipInfo)
+            'ip_info' => $ipInfo
         ]);
 
         return $newSession;
