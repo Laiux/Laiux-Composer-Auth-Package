@@ -10,6 +10,7 @@ class AuthenticationProvider extends ServiceProvider {
     
     public function boot(): void {
         $this->loadMigrations();
+        $this->loadMiddleware();
     }
 
     private function loadMigrations(): void {
@@ -28,6 +29,13 @@ class AuthenticationProvider extends ServiceProvider {
             ], 
             'laiux-auth-migrations'
         );
+    }
+
+    protected function loadMiddleware() {
+        $router = $this->app['router'];
+
+        // Registro de middleware global
+        $router->aliasMiddleware('localTokenValidation.middleware', \Laiux\Auth\Middleware\LocalTokenValidationMiddleware::class);
     }
 
     private function getMigrationFileName(string $migrationFileName): string
