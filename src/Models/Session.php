@@ -25,11 +25,13 @@ class Session extends Model
         'ip_info'
     ];
 
-    protected $hidden = [
-        'id'
-    ];
-
     protected $casts = [
+        'issued_date' => 'integer',
+        'expire_time' => 'integer',
+        'expire_date' => 'integer',
+        'is_desktop' => 'boolean',
+        'is_phone' => 'boolean',
+        'is_robot' => 'boolean',
         'ip_info' => IpInfoCast::class,
     ];
 }

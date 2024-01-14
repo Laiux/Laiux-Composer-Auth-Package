@@ -11,13 +11,23 @@ use Laiux\Auth\Models\Session;
 trait Authenticable{
 
     /**
-         * Generate a JWT with the parent object adding params for the generation
+         * Generate a JWT with the parent object adding params for the generation and create a new session in the database
          *
          * @param string          $aud The Audience URL.
          *
          * @return string A signed JWT
     */
-    public function generateJWTToken(Request $request, string $aud = null): object {
+    public function generateJWTToken(Request $request, string $aud = null): array {
+
+        //Read configurations
+
+        $ipInfo_access_token = config('laiux_auth.ipinfo_access_token');
+        $secret = config('laiux_auth.secret');
+        $iss = config('laiux_auth.url');
+        $exp = config('laiux_auth.expiration_time');
+        $alg = config('laiux_auth.algorithm');
+
+        //Create initial params (hidden attributes and attributes)
 
         $hidden = $this->hidden;
 
@@ -25,9 +35,15 @@ trait Authenticable{
 
         $data_object = [];
 
-        $ip = $request->getClientIp();
+        //Assing information
 
-        $ipInfo_access_token = config('app.ipinfo_access_token');
+        foreach ($properties as $name => $value) {
+            if(!in_array($name, $hidden)) $data_object[$name] = $value;
+        }
+
+        //Get information of the IP
+
+        $ip = $request->getClientIp();        
 
         $ipInfo = [];
         $ipInfo["ip"] = $ip;
@@ -49,14 +65,12 @@ trait Authenticable{
             ];
         }
 
-        foreach ($properties as $name => $value) {
-            if(!in_array($name, $hidden)) $data_object[$name] = $value;
-        }
+        //Get Device Info from User Agent
 
-        $secret = config('auth.secret');
-        $iss = config('app.url');
-        $exp = config('auth.expiration_time');
-        $alg = config('auth.algorithm');
+        $agent = new Agent();
+        $agent->setUserAgent($request->userAgent());
+
+        //Generate JWT
 
         /*  ENGLISH REFERENCE
             sub -> Subject: whom the token refers to.
@@ -82,11 +96,14 @@ trait Authenticable{
         if($aud) $data_object['aud'] = $aud;
 
         $token = JWT::encode($data_object, $secret, $alg);
-        $agent = new Agent();
-        $agent->setUserAgent($request->userAgent());
+
+        //Register session in the database
+
+        $projectName = $request->header('PROJECT_NAME', 'TESTING_APP');
 
         $newSession = Session::create([
             'user_id' => $this->id,
+            'project_name' => $projectName,
             'token' => $token,
             'issued_date' => $issued_date,
             'expire_time' => $exp,
@@ -100,6 +117,11 @@ trait Authenticable{
             'ip_info' => $ipInfo
         ]);
 
-        return $newSession;
+        //Return required information (Token and expire_time)
+
+        return [
+            'token' => $newSession->token,
+            'expire_time' => $newSession->expire_time
+        ];
     }
 }
