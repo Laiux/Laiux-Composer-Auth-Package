@@ -12,6 +12,7 @@ class Session extends Model
 
     protected $fillable = [
         'user_id',
+        'project_name',
         'token',
         'issued_date',
         'expire_time',
