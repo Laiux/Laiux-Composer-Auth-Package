@@ -17,6 +17,8 @@
     ],
     "require": {
         "firebase/php-jwt": "^6.10",
-        "laravel/framework": "^10.40"
+        "laravel/framework": "^10.40",
+        "jenssegers/agent": "^2.6",
+        "ipinfo/ipinfo": "^3.1"
     }
 }

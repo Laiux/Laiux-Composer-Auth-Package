@@ -3,6 +3,9 @@
 namespace Laiux\Auth;
 
 use Firebase\JWT\JWT;
+use Illuminate\Http\Request;
+use ipinfo\ipinfo\IPinfo;
+use Jenssegers\Agent\Agent;
 
 trait Authenticable{
 
@@ -13,7 +16,7 @@ trait Authenticable{
          *
          * @return string A signed JWT
     */
-    public function generateJWTToken(string $aud = null): array {
+    public function generateJWTToken(Request $request, string $aud = null): array {
 
         $hidden = $this->hidden;
 
@@ -26,6 +29,7 @@ trait Authenticable{
         }
 
         $secret = config('auth.secret');
+        $ipInfo_access_token = config('app.ipinfo_access_token');
         $iss = config('app.url');
         $exp = config('auth.expiration_time');
         $alg = config('auth.algorithm');
@@ -54,10 +58,43 @@ trait Authenticable{
         if($aud) $data_object['aud'] = $aud;
 
         $token = JWT::encode($data_object, $secret, $alg);
+        $agent = new Agent();
+        $agent->setUserAgent($request->userAgent());
+
+        $ip = $request->getClientIp();
+
+        $ipInfo = [];
+        $ipInfo["ip"] = $ip;
+
+        if($ip == "127.0.0.1"){
+            $ipInfo["type"] = "local";
+        } else {
+            $client = new IPinfo($ipInfo_access_token);
+            $details = $client->getDetails($ip);
+            $ipInfo["type"] = "client";
+            $ipInfo["details"] = [
+                "continent" => $details->continent["name"],
+                "country" => $details->country_name,
+                "country_flag" => $details->country_flag_url,
+                "region" => $details->region,
+                "city" => $details->city,
+                "location" => $details->loc,
+                "timezone" => $details->timezone
+            ];
+        }
 
         return [
             "token" => $token,
-            "exp" => $exp
+            "exp" => $exp,
+            "deviceInfo" => [
+                "device" => $agent->device(),
+                "platform" => $agent->platform(),
+                "browser" => $agent->browser(),
+                "isDesktop" => $agent->isDesktop(),
+                "isPhone" => $agent->isPhone(),
+                "isRobot" => $agent->isRobot(),
+                "ipInfo" => $ipInfo
+            ]
         ];
     }
 }
