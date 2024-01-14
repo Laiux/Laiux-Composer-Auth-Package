@@ -1,11 +1,12 @@
 <?php
 
-namespace Laiux\Auth;
+namespace Laiux\Auth\Traits;
 
 use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
 use ipinfo\ipinfo\IPinfo;
 use Jenssegers\Agent\Agent;
+use Laiux\Auth\Models\Session;
 
 trait Authenticable{
 
@@ -24,12 +25,35 @@ trait Authenticable{
 
         $data_object = [];
 
+        $ip = $request->getClientIp();
+
+        $ipInfo_access_token = config('app.ipinfo_access_token');
+
+        $ipInfo = [];
+        $ipInfo["ip"] = $ip;
+
+        if($ip == "127.0.0.1"){
+            $ipInfo["type"] = "local";
+        } else {
+            $client = new IPinfo($ipInfo_access_token);
+            $details = $client->getDetails($ip);
+            $ipInfo["type"] = "client";
+            $ipInfo["details"] = [
+                "continent" => $details->continent["name"],
+                "country" => $details->country_name,
+                "country_flag" => $details->country_flag_url,
+                "region" => $details->region,
+                "city" => $details->city,
+                "location" => $details->loc,
+                "timezone" => $details->timezone
+            ];
+        }
+
         foreach ($properties as $name => $value) {
             if(!in_array($name, $hidden)) $data_object[$name] = $value;
         }
 
         $secret = config('auth.secret');
-        $ipInfo_access_token = config('app.ipinfo_access_token');
         $iss = config('app.url');
         $exp = config('auth.expiration_time');
         $alg = config('auth.algorithm');
@@ -61,40 +85,20 @@ trait Authenticable{
         $agent = new Agent();
         $agent->setUserAgent($request->userAgent());
 
-        $ip = $request->getClientIp();
+        $newSession = Session::create([
+            'user_id' => $this->id,
+            'token' => $token,
+            'expire_time' => $exp,
+            'issued_date' => $issued_date,
+            'device' => $agent->device() == false ? null : $agent->device(),
+            'platform' => $agent->platform() == false ? null : $agent->platform(),
+            'browser' => $agent->browser() == false ? null : $agent->browser(),
+            'is_desktop' => $agent->isDesktop(),
+            'is_phone' => $agent->isDesktop(),
+            'is_robot' => $agent->isRobot(),
+            'ipInfo' => json_encode($ipInfo)
+        ]);
 
-        $ipInfo = [];
-        $ipInfo["ip"] = $ip;
-
-        if($ip == "127.0.0.1"){
-            $ipInfo["type"] = "local";
-        } else {
-            $client = new IPinfo($ipInfo_access_token);
-            $details = $client->getDetails($ip);
-            $ipInfo["type"] = "client";
-            $ipInfo["details"] = [
-                "continent" => $details->continent["name"],
-                "country" => $details->country_name,
-                "country_flag" => $details->country_flag_url,
-                "region" => $details->region,
-                "city" => $details->city,
-                "location" => $details->loc,
-                "timezone" => $details->timezone
-            ];
-        }
-
-        return [
-            "token" => $token,
-            "exp" => $exp,
-            "deviceInfo" => [
-                "device" => $agent->device(),
-                "platform" => $agent->platform(),
-                "browser" => $agent->browser(),
-                "isDesktop" => $agent->isDesktop(),
-                "isPhone" => $agent->isPhone(),
-                "isRobot" => $agent->isRobot(),
-                "ipInfo" => $ipInfo
-            ]
-        ];
+        return $newSession;
     }
 }

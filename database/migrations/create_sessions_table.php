@@ -15,13 +15,15 @@ return new class extends Migration
             $table->id();
             $table->string('user_id');
             $table->text("token")->unique();
+            $table->integer("issued_date");
             $table->integer("expire_time");
-            $table->string("device");
-            $table->string("platform");
-            $table->string("browser");
-            $table->boolean("is_desktop");
-            $table->boolean("is_phone");
-            $table->json("ip_info");
+            $table->string("device")->nullable();
+            $table->string("platform")->nullable();
+            $table->string("browser")->nullable();
+            $table->boolean("is_desktop")->nullable();
+            $table->boolean("is_phone")->nullable();
+            $table->boolean("is_robot")->nullable();
+            $table->json("ip_info")->nullable();
             $table->timestamps();
         });
     }
