@@ -11,7 +11,11 @@ class LocalTokenPermissionsValidationMiddleware
     public function handle(Request $request, Closure $next, string ...$permissions)
     {
 
-        $decoded = LocalTokenValidationMiddleware::validateJWTToken($request->bearerToken());
+        $token = $request->bearerToken();
+
+        if($token == null) abort(401);
+
+        $decoded = LocalTokenValidationMiddleware::validateJWTToken($token);
 
         if($decoded == null) abort(401);
 

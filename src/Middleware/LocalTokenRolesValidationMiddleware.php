@@ -11,7 +11,11 @@ class LocalTokenRolesValidationMiddleware
     public function handle(Request $request, Closure $next, string ...$roles)
     {
 
-        $decoded = LocalTokenValidationMiddleware::validateJWTToken($request->bearerToken());
+        $token = $request->bearerToken();
+
+        if($token == null) abort(401);
+
+        $decoded = LocalTokenValidationMiddleware::validateJWTToken($token);
 
         if($decoded == null) abort(401);
 
