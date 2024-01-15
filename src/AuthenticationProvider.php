@@ -34,9 +34,10 @@ class AuthenticationProvider extends ServiceProvider {
     protected function loadMiddleware() {
         $router = $this->app['router'];
 
-        // Registro de middleware global
+        // Registro de middleware locales
         $router->aliasMiddleware('localTokenValidation.middleware', \Laiux\Auth\Middleware\LocalTokenValidationMiddleware::class);
         $router->aliasMiddleware('localTokenRolesValidation.middleware', \Laiux\Auth\Middleware\LocalTokenRolesValidationMiddleware::class);
+        $router->aliasMiddleware('localTokenPermissionsValidation.middleware', \Laiux\Auth\Middleware\LocalTokenPermissionsValidationMiddleware::class);
     }
 
     private function getMigrationFileName(string $migrationFileName): string
