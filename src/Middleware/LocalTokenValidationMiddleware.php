@@ -12,17 +12,26 @@ class LocalTokenValidationMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
+
+        //Execute the validation of token
+        $isValid = $this->validateJWTToken($request->bearerToken()) != null;
+
+        if(!$isValid){
+            abort(401);
+        }
+
+        return $next($request);
+    }
+
+    public static function validateJWTToken(string $token): object | null {
+
         //Load configs
 
         $secret = config('laiux_auth.secret');
         $alg = config('laiux_auth.algorithm');
 
-        //Get and validate the access token
-
-        $token = $request->bearerToken();
-
         if($token == null){
-            return response('', 401);
+            return null;
         }
 
         //Validate the access token
@@ -31,14 +40,16 @@ class LocalTokenValidationMiddleware
         try {
             $decoded = JWT::decode($token, new Key($secret, $alg));
         } catch (\Throwable $th) {
-            return response('', 401);
+            return null;
         }
         //2nd filter validation exists in the sessions
         $session = Session::where('token', $token)->where('user_id', $decoded->id)->first();
         if($session == null){
-            return response('', 401);
+            return null;
         }
 
-        return $next($request);
+        //Returns the token decoded
+
+        return $decoded;
     }
 }
