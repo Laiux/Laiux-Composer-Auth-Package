@@ -6,23 +6,23 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class LocalTokenRolesValidationMiddleware
+class LocalTokenPermissionsValidationMiddleware
 {
-    public function handle(Request $request, Closure $next, string ...$roles)
+    public function handle(Request $request, Closure $next, string ...$permissions)
     {
 
         $decoded = LocalTokenValidationMiddleware::validateJWTToken($request->bearerToken());
 
         if($decoded == null) abort(401);
 
-        //Validate roles
+        //Validate permissions
 
-        if (!$this->validateRoles($decoded->id, $roles)) abort(401);
+        if (!$this->validatePermissions($decoded->id, $permissions)) abort(401);
 
         return $next($request);
     }
 
-    public static function validateRoles(int $userId, array $roles): bool {
+    public static function validatePermissions(int $userId, array $permissions): bool {
 
         //Starting login for use laravel-permissions
 
@@ -31,8 +31,8 @@ class LocalTokenRolesValidationMiddleware
         $user = $guard->getProvider()->retrieveById($userId);
         $guard->login($user);
 
-        //Validate roles
+        //Validate permissions
 
-        return Auth::user()->hasAllRoles($roles);
+        return Auth::user()->hasPermissionTo($permissions);
     }
 }

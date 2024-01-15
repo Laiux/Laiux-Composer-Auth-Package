@@ -3,6 +3,7 @@
 namespace Laiux\Auth\Middleware;
 
 use Closure;
+use Firebase\JWT\ExpiredException;
 use Illuminate\Http\Request;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -16,9 +17,7 @@ class LocalTokenValidationMiddleware
         //Execute the validation of token
         $isValid = $this->validateJWTToken($request->bearerToken()) != null;
 
-        if(!$isValid){
-            abort(401);
-        }
+        if(!$isValid) abort(401);
 
         return $next($request);
     }
@@ -30,23 +29,24 @@ class LocalTokenValidationMiddleware
         $secret = config('laiux_auth.secret');
         $alg = config('laiux_auth.algorithm');
 
-        if($token == null){
-            return null;
-        }
+        if($token == null) return null;
 
         //Validate the access token
         //1st filter validation of JWT
         $decoded = null;
         try {
             $decoded = JWT::decode($token, new Key($secret, $alg));
+        } catch (ExpiredException $ex){
+            $session = Session::where('token', $token)->first();
+            if($session == null) return null;
+            $session->delete();
+            return null;
         } catch (\Throwable $th) {
             return null;
         }
         //2nd filter validation exists in the sessions
         $session = Session::where('token', $token)->where('user_id', $decoded->id)->first();
-        if($session == null){
-            return null;
-        }
+        if($session == null) return null;
 
         //Returns the token decoded
 
