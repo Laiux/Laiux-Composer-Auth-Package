@@ -33,6 +33,6 @@ class LocalTokenPermissionsValidationMiddleware
 
         //Validate permissions
 
-        return Auth::user()->hasPermissionTo($permissions);
+        return Auth::user()->hasAllPermissions($permissions);
     }
 }
