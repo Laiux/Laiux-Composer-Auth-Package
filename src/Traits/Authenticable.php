@@ -117,11 +117,27 @@ trait Authenticable{
             'ip_info' => $ipInfo
         ]);
 
+        //Get Roles
+
+        $roles = $this->getRoleNames();
+
+        //Get Permissions
+
+        $permissions = [];
+
+        foreach ($roles as $rol) {
+            $permissions = array_merge($permissions, $this->getPermissionsViaRoles($rol)->pluck('name')->all());
+        }
+
+        $permissions = array_unique($permissions);
+
         //Return required information (Token and expire_time)
 
         return [
             'token' => $newSession->token,
-            'expire_time' => $newSession->expire_time
+            'expire_time' => $newSession->expire_time,
+            'roles' => $roles,
+            'permissions' => $permissions
         ];
     }
 }
