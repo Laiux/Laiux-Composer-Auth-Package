@@ -15,9 +15,16 @@ class LocalTokenValidationMiddleware
     {
 
         //Execute the validation of token
-        $isValid = $this->validateJWTToken($request->bearerToken()) != null;
+        $decodedToken = $this->validateJWTToken($request->bearerToken());
+        $isValid =  $decodedToken != null;
 
         if(!$isValid) abort(401);
+
+        //Start session
+        $authManager = app('auth');
+        $guard = $authManager->guard();
+        $user = $guard->getProvider()->retrieveById($decodedToken->id);
+        $guard->login($user);
 
         return $next($request);
     }
