@@ -3,6 +3,7 @@
 namespace Laiux\Auth\Middleware;
 
 use Closure;
+use GuzzleHttp\Exception\ClientException;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 
@@ -29,22 +30,38 @@ class RemoteTokenPermissionsValidationMiddleware
             'list' => $permissions,
         ];
 
-        $client = new Client();
+        try {
+            $client = new Client();
 
-        $response = $client->post($url, [
-            'headers' => $headers,
-            'query' => $queryParams
-        ]);
+            $response = $client->post($url, [
+                'headers' => $headers,
+                'query' => $queryParams
+            ]);
 
-        if(!($response->getStatusCode() == 200)) abort(401);
+            if(!($response->getStatusCode() == 200)) abort(401);
 
-        $responseBody = $response->getBody()->getContents();
+            $responseBody = $response->getBody()->getContents();
 
-        $data = json_decode($responseBody, true);
+            $data = json_decode($responseBody, true);
 
-        if(!(isset($data['success']) && $data['success'] == true)) abort(401);
+            if(!(isset($data['success']) && $data['success'] == true)) abort(401);
 
-        return $next($request);
+            return $next($request);
+
+        } catch (ClientException $e) {
+            if ($e->hasResponse() && $e->getResponse()->getStatusCode() != 200) {
+                abort(401);
+            } else {
+                $responseBody = $e->getResponse()->getBody()->getContents();
+
+                $data = json_decode($responseBody, true);
+
+                if(!(isset($data['success']) && $data['success'] == true)) abort(401);
+
+                return $next($request);
+            }
+        }
+        
     }
 
 }
