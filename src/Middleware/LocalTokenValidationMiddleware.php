@@ -13,9 +13,12 @@ class LocalTokenValidationMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
+        //Validate if token is send
+        $token = $request->bearerToken();
 
+        if($token == null) abort(401);
         //Execute the validation of token
-        $decodedToken = $this->validateJWTToken($request->bearerToken());
+        $decodedToken = $this->validateJWTToken($token);
         $isValid =  $decodedToken != null;
 
         if(!$isValid) abort(401);
