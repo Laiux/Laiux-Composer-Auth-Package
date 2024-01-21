@@ -38,6 +38,11 @@ class AuthenticationProvider extends ServiceProvider {
         $router->aliasMiddleware('localTokenValidation.middleware', \Laiux\Auth\Middleware\LocalTokenValidationMiddleware::class);
         $router->aliasMiddleware('localTokenRolesValidation.middleware', \Laiux\Auth\Middleware\LocalTokenRolesValidationMiddleware::class);
         $router->aliasMiddleware('localTokenPermissionsValidation.middleware', \Laiux\Auth\Middleware\LocalTokenPermissionsValidationMiddleware::class);
+
+        // Registro de middleware remotos
+        $router->aliasMiddleware('remoteTokenValidation.middleware', \Laiux\Auth\Middleware\RemoteTokenValidationMiddleware::class);
+        $router->aliasMiddleware('remoteTokenRolesValidation.middleware', \Laiux\Auth\Middleware\RemoteTokenRolesValidationMiddleware::class);
+        $router->aliasMiddleware('remoteTokenPermissionsValidation.middleware', \Laiux\Auth\Middleware\RemoteTokenPermissionsValidationMiddleware::class);
     }
 
     private function getMigrationFileName(string $migrationFileName): string
