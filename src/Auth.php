@@ -58,7 +58,7 @@ class Auth {
 
         if($url == null) abort(401);
 
-        $url = $url.'/api/auth';
+        $url = $url.'/api/unauth';
 
         $headers = [
             'Authorization' => 'Bearer '.$token
